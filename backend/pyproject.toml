@@ -1,0 +1,22 @@
+[project]
+name = "x3-backend"
+version = "0.1.0"
+description = "FastAPI backend service for RAG chatbot"
+authors = [{ name = "Your Name", email = "you@example.com" }]
+dependencies = [
+    "fastapi",
+    "uvicorn[standard]"
+]
+
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[tool.black]
+line-length = 88
+
+[tool.isort]
+profile = "black"
+
+[tool.ruff]
+line-length = 88
