@@ -1,0 +1,21 @@
+[project]
+name = "x3-frontend"
+version = "0.1.0"
+description = "Streamlit frontend for RAG chatbot"
+authors = [{ name = "Your Name", email = "you@example.com" }]
+dependencies = [
+    "streamlit"
+]
+
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[tool.black]
+line-length = 88
+
+[tool.isort]
+profile = "black"
+
+[tool.ruff]
+line-length = 88
