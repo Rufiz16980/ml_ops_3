@@ -8,9 +8,10 @@ router = APIRouter()
 async def chat(request: Request):
     body = await request.json()
     user_message = body.get("message", "")
+    mode = body.get("mode", "General Chat")  # 👈 pick up the mode from frontend
 
     async def event_stream():
-        for chunk in stream_bedrock_response(user_message):
+        for chunk in stream_bedrock_response(user_message, mode=mode):  # 👈 forward mode
             yield chunk
 
     return StreamingResponse(event_stream(), media_type="text/event-stream")

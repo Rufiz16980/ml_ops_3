@@ -5,7 +5,13 @@ description = "FastAPI backend service for RAG chatbot"
 authors = [{ name = "Your Name", email = "you@example.com" }]
 dependencies = [
     "fastapi",
-    "uvicorn[standard]"
+    "uvicorn[standard]",
+    "boto3",
+    "python-dotenv",
+    "faiss-cpu",
+    "sentence-transformers",
+    "PyPDF2",
+    "python-multipart"
 ]
 
 [build-system]

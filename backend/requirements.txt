@@ -2,3 +2,7 @@ fastapi
 uvicorn
 boto3
 python-dotenv
+faiss-cpu
+sentence-transformers
+PyPDF2
+python-multipart

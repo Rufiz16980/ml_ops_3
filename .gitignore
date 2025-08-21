@@ -14,4 +14,7 @@ venv/
 # OS stuff
 .DS_Store
 Thumbs.db
-git rm -r --cached .
+
+# RAG cache
+rag_index.faiss
+rag_docs.pkl
