@@ -18,3 +18,8 @@ Thumbs.db
 # RAG cache
 rag_index.faiss
 rag_docs.pkl
+
+
+# Ignore uploaded files
+backend/uploads/
+backend/data/uploads/
