@@ -1,12 +1,16 @@
-from fastapi import APIRouter
-from fastapi.responses import JSONResponse
-from app.services.bedrock import BedrockService
+from fastapi import APIRouter, Request
+from fastapi.responses import StreamingResponse
+from app.services.bedrock import stream_bedrock_response
 
 router = APIRouter()
-bedrock = BedrockService()
 
-@router.post("/chat")
-async def chat(request: dict):
-    user_input = request.get("prompt", "")
-    response = bedrock.query_model(user_input)
-    return JSONResponse(content={"response": response})
+@router.post("/")
+async def chat(request: Request):
+    body = await request.json()
+    user_message = body.get("message", "")
+
+    async def event_stream():
+        for chunk in stream_bedrock_response(user_message):
+            yield chunk
+
+    return StreamingResponse(event_stream(), media_type="text/event-stream")
