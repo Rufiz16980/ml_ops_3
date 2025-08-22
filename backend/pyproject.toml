@@ -3,31 +3,17 @@ name = "x3-backend"
 version = "0.1.0"
 description = "FastAPI backend service for RAG chatbot"
 authors = [{ name = "Your Name", email = "you@example.com" }]
-requires-python = ">=3.10,<3.13"
-
 dependencies = [
-    "fastapi>=0.110.0,<0.112.0",
-    "uvicorn[standard]>=0.29.0,<0.32.0",
-    "boto3>=1.34.0,<1.36.0",
-    "python-dotenv>=1.0.0,<1.1.0",
-    "faiss-cpu>=1.7.4",
-    "sentence-transformers>=2.6.0,<2.7.0",
-    "PyPDF2>=3.0.1,<3.1.0",
-    "python-multipart>=0.0.9,<0.0.10"
+    "fastapi",
+    "uvicorn[standard]",
+    "boto3",
+    "python-dotenv",
+    "faiss-cpu",
+    "sentence-transformers",
+    "PyPDF2",
+    "python-multipart"
 ]
 
 [build-system]
-requires = ["setuptools>=61.0", "wheel"]
+requires = ["setuptools>=61.0"]
 build-backend = "setuptools.build_meta"
-
-[tool.black]
-line-length = 88
-
-[tool.isort]
-profile = "black"
-
-[tool.ruff]
-line-length = 88
-target-version = "py312"
-select = ["E", "F", "I"]
-ignore = []
