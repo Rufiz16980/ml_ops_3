@@ -43,7 +43,9 @@ def send_message(user_input: str, mode: str):
     meta_info = ""
     try:
         payload = {"input": user_input, "mode": mode}
-        with requests.post(backend_url, json=payload, stream=True, timeout=60) as response:
+        with requests.post(
+            backend_url, json=payload, stream=True, timeout=60
+        ) as response:
             if response.status_code == 200:
                 for chunk in response.iter_lines(decode_unicode=True):
                     if chunk and chunk.startswith("data:"):
@@ -82,7 +84,9 @@ if chat_type == "General Chat":
     user_input = st.chat_input("Ask me anything...")
 
     if user_input:
-        st.session_state.general_messages.append({"role": "user", "content": user_input})
+        st.session_state.general_messages.append(
+            {"role": "user", "content": user_input}
+        )
         with st.chat_message("user"):
             st.markdown(user_input)
 
@@ -90,7 +94,9 @@ if chat_type == "General Chat":
             message_placeholder = st.empty()
             response_text = send_message(user_input, "General Chat")
             message_placeholder.markdown(response_text)
-        st.session_state.general_messages.append({"role": "assistant", "content": response_text})
+        st.session_state.general_messages.append(
+            {"role": "assistant", "content": response_text}
+        )
 
 # -----------------------
 # Knowledge Base Chat (RAG)
@@ -103,14 +109,16 @@ else:
         "Upload PDFs",
         type="pdf",
         accept_multiple_files=True,
-        key=f"uploader_{len(st.session_state.uploaded_files)}"
+        key=f"uploader_{len(st.session_state.uploaded_files)}",
     )
 
     if uploaded_files:
         for file in uploaded_files:
             if file.name not in st.session_state.uploaded_files:
                 file_bytes = file.read()
-                files = {"files": (file.name, io.BytesIO(file_bytes), "application/pdf")}
+                files = {
+                    "files": (file.name, io.BytesIO(file_bytes), "application/pdf")
+                }
                 try:
                     res = requests.post(upload_url, files=files)
                     if res.status_code == 200:
@@ -118,7 +126,9 @@ else:
                         st.session_state.uploaded_files = set(docs)
                         st.sidebar.success(f"✅ {file.name} uploaded and indexed")
                     else:
-                        st.sidebar.error(f"❌ Upload failed for {file.name}: {res.text}")
+                        st.sidebar.error(
+                            f"❌ Upload failed for {file.name}: {res.text}"
+                        )
                 except Exception as e:
                     st.sidebar.error(f"❌ Upload error: {e}")
         sync_with_backend()
@@ -170,4 +180,6 @@ else:
             message_placeholder = st.empty()
             response_text = send_message(user_input, "Knowledge Base (RAG)")
             message_placeholder.markdown(response_text)
-        st.session_state.rag_messages.append({"role": "assistant", "content": response_text})
+        st.session_state.rag_messages.append(
+            {"role": "assistant", "content": response_text}
+        )

@@ -13,12 +13,11 @@ bedrock = boto3.client(
     region_name=os.getenv("AWS_DEFAULT_REGION", "us-east-1"),
     aws_access_key_id=os.getenv("AWS_ACCESS_KEY_ID"),
     aws_secret_access_key=os.getenv("AWS_SECRET_ACCESS_KEY"),
-    aws_session_token=os.getenv("AWS_SESSION_TOKEN")  # optional
+    aws_session_token=os.getenv("AWS_SESSION_TOKEN"),  # optional
 )
 
-MODEL_ID = os.getenv(
-    "BEDROCK_MODEL_ID", "anthropic.claude-3-haiku-20240307-v1:0"
-)
+MODEL_ID = os.getenv("BEDROCK_MODEL_ID", "anthropic.claude-3-haiku-20240307-v1:0")
+
 
 def stream_bedrock_response(prompt: str, mode: str = "General Chat"):
     """Handles both General Chat and Knowledge Base (RAG) chat."""
@@ -30,9 +29,7 @@ def stream_bedrock_response(prompt: str, mode: str = "General Chat"):
 
     body = {
         "anthropic_version": "bedrock-2023-05-31",
-        "messages": [
-            {"role": "user", "content": [{"type": "text", "text": prompt}]}
-        ],
+        "messages": [{"role": "user", "content": [{"type": "text", "text": prompt}]}],
         "max_tokens": 500,
     }
 
@@ -45,7 +42,9 @@ def stream_bedrock_response(prompt: str, mode: str = "General Chat"):
         )
         result = json.loads(response["body"].read().decode("utf-8"))
     except Exception as e:
-        yield json.dumps({"text": f"Backend error: {e}", "model": MODEL_ID, "usage": {}})
+        yield json.dumps(
+            {"text": f"Backend error: {e}", "model": MODEL_ID, "usage": {}}
+        )
         return
 
     # Extract the assistant text output

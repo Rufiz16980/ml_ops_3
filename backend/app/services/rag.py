@@ -16,6 +16,7 @@ os.makedirs(UPLOAD_DIR, exist_ok=True)
 # Embedding model
 model = SentenceTransformer("all-MiniLM-L6-v2")
 
+
 # -------------------------
 # Helpers
 # -------------------------
@@ -49,7 +50,7 @@ def chunk_text(text: str, max_len: int = 300, overlap: int = 50) -> List[str]:
     words = text.split()
     chunks = []
     for i in range(0, len(words), max_len - overlap):
-        chunk = words[i:i + max_len]
+        chunk = words[i : i + max_len]
         chunks.append(" ".join(chunk))
     return chunks
 
@@ -63,6 +64,7 @@ def extract_text_from_pdf(pdf_path: str) -> str:
         if page_text:
             text += page_text + "\n"
     return text.strip()
+
 
 # -------------------------
 # Core functions

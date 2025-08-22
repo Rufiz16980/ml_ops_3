@@ -4,6 +4,7 @@ from app.services.bedrock import stream_bedrock_response
 
 router = APIRouter()
 
+
 @router.post("/stream")
 async def chat_stream(request: Request):
     data = await request.json()
@@ -11,8 +12,10 @@ async def chat_stream(request: Request):
     mode = data.get("mode", "General Chat")
 
     if not user_input.strip():
-        return StreamingResponse(iter(["data: {\"text\": \"⚠️ Empty input\"}\n\n"]),
-                                 media_type="text/event-stream")
+        return StreamingResponse(
+            iter(['data: {"text": "⚠️ Empty input"}\n\n']),
+            media_type="text/event-stream",
+        )
 
     def event_stream():
         for chunk in stream_bedrock_response(user_input, mode):

@@ -20,7 +20,9 @@ async def upload_documents(files: list[UploadFile] = File(...)):
     saved_files = []
     for file in files:
         if not file.filename.lower().endswith(".pdf"):
-            return JSONResponse(status_code=400, content={"error": "Only PDF files allowed"})
+            return JSONResponse(
+                status_code=400, content={"error": "Only PDF files allowed"}
+            )
 
         safe_name = os.path.basename(file.filename)  # prevent path traversal
         save_path = os.path.join(UPLOAD_DIR, safe_name)
@@ -43,7 +45,7 @@ async def upload_documents(files: list[UploadFile] = File(...)):
     return JSONResponse(
         content={
             "message": f"✅ {len(saved_files)} file(s) uploaded & indexed",
-            "documents": list_documents()   # ✅ always return authoritative list
+            "documents": list_documents(),  # ✅ always return authoritative list
         }
     )
 
@@ -70,8 +72,10 @@ async def delete_file(filename: str):
 
     return JSONResponse(
         content={
-            "message": f"🗑 {safe_name} deleted (index + file)" if success else "File not found",
-            "documents": list_documents()   # ✅ always return authoritative list
+            "message": (
+                f"🗑 {safe_name} deleted (index + file)" if success else "File not found"
+            ),
+            "documents": list_documents(),  # ✅ always return authoritative list
         }
     )
 
@@ -91,6 +95,6 @@ async def delete_documents():
     return JSONResponse(
         content={
             "message": "🗑 All documents deleted (index + files)",
-            "documents": list_documents()   # ✅ always return authoritative list
+            "documents": list_documents(),  # ✅ always return authoritative list
         }
     )
