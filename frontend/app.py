@@ -1,23 +1,71 @@
 import streamlit as st
 import requests
 import json
+import io
 
 st.set_page_config(page_title="RAG Chatbot", page_icon="🤖")
 st.title("RAG Chatbot")
 
-backend_url = "http://localhost:8000/chat"
+# Backend endpoints
+backend_url = "http://localhost:8000/chat/stream"
 upload_url = "http://localhost:8000/upload"
 
-# Initialize sessions
+# -----------------------
+# Initialize session state
+# -----------------------
 if "general_messages" not in st.session_state:
     st.session_state.general_messages = []
 if "rag_messages" not in st.session_state:
     st.session_state.rag_messages = []
-if "doc_uploaded" not in st.session_state:
-    st.session_state.doc_uploaded = False
+if "uploaded_files" not in st.session_state:
+    st.session_state.uploaded_files = set()
 
+def sync_with_backend():
+    """Force refresh of file list from backend."""
+    try:
+        resp = requests.get(upload_url + "/list")
+        if resp.status_code == 200:
+            st.session_state.uploaded_files = set(resp.json().get("documents", []))
+        else:
+            st.session_state.uploaded_files = set()
+    except Exception:
+        st.session_state.uploaded_files = set()
+
+# -----------------------
+# Helper to send message
+# -----------------------
+def send_message(user_input: str, mode: str):
+    """Send a message to the backend and return the parsed response text + meta."""
+    full_text = ""
+    meta_info = ""
+    try:
+        payload = {"input": user_input, "mode": mode}
+        with requests.post(backend_url, json=payload, stream=True, timeout=60) as response:
+            if response.status_code == 200:
+                for chunk in response.iter_lines(decode_unicode=True):
+                    if chunk and chunk.startswith("data:"):
+                        raw = chunk.replace("data:", "").strip()
+                        try:
+                            parsed = json.loads(raw)
+                            text = parsed.get("text", "")
+                            full_text += text
+                            meta_info = f"\n\n_Model: {parsed.get('model')}, Usage: {parsed.get('usage')}_"
+                        except Exception:
+                            full_text += raw
+            else:
+                full_text = f"Error: {response.status_code} - {response.text}"
+    except Exception as e:
+        full_text = f"Request failed: {e}"
+
+    if not full_text.strip():
+        full_text = "_No response (backend error or empty knowledge base)_"
+
+    return full_text + meta_info
+
+# -----------------------
 # Sidebar: choose chat type
-chat_type = st.sidebar.radio("Choose Chat", ["General Chat", "Knowledge Base Chat"])
+# -----------------------
+chat_type = st.sidebar.radio("Choose Chat", ["General Chat", "Knowledge Base (RAG)"])
 
 # -----------------------
 # General Chat
@@ -38,36 +86,9 @@ if chat_type == "General Chat":
 
         with st.chat_message("assistant"):
             message_placeholder = st.empty()
-            full_response = ""
-
-            try:
-                payload = {"message": user_input, "mode": "General Chat"}
-                with requests.post(backend_url, json=payload, stream=True) as response:
-                    if response.status_code == 200:
-                        for chunk in response.iter_content(chunk_size=None, decode_unicode=True):
-                            if chunk:
-                                try:
-                                    data = json.loads(chunk)
-                                    text = "".join(
-                                        [c["text"] for c in data.get("content", []) if c["type"] == "text"]
-                                    )
-                                    model = data.get("model", "unknown")
-                                    usage = data.get("usage", {})
-                                    token_info = f"🔹 Model: `{model}`  \n🔹 Tokens: input {usage.get('input_tokens',0)}, output {usage.get('output_tokens',0)}"
-
-                                    full_response = f"{text}\n\n---\n{token_info}"
-                                    message_placeholder.markdown(full_response)
-                                except json.JSONDecodeError:
-                                    pass
-                    else:
-                        full_response = f"Error: {response.status_code} - {response.text}"
-                        message_placeholder.error(full_response)
-            except Exception as e:
-                full_response = f"Request failed: {e}"
-                message_placeholder.error(full_response)
-
-            st.session_state.general_messages.append({"role": "assistant", "content": full_response})
-
+            response_text = send_message(user_input, "General Chat")
+            message_placeholder.markdown(response_text)
+        st.session_state.general_messages.append({"role": "assistant", "content": response_text})
 
 # -----------------------
 # Knowledge Base Chat (RAG)
@@ -75,19 +96,63 @@ if chat_type == "General Chat":
 else:
     st.header("📚 Knowledge Base Chat")
 
-    # File upload
+    # File upload (reset key whenever uploaded_files changes)
     uploaded_files = st.sidebar.file_uploader(
-        "Upload PDFs", type="pdf", accept_multiple_files=True
+        "Upload PDFs",
+        type="pdf",
+        accept_multiple_files=True,
+        key=f"uploader_{len(st.session_state.uploaded_files)}"
     )
-    if uploaded_files:
-        files = [("files", (f.name, f, "application/pdf")) for f in uploaded_files]
-        res = requests.post(upload_url, files=files)
-        if res.status_code == 200:
-            st.sidebar.success("✅ Documents uploaded and indexed")
-            st.session_state.doc_uploaded = True
-        else:
-            st.sidebar.error("❌ Upload failed")
 
+    if uploaded_files:
+        for file in uploaded_files:
+            if file.name not in st.session_state.uploaded_files:
+                file_bytes = file.read()
+                files = {"files": (file.name, io.BytesIO(file_bytes), "application/pdf")}
+                try:
+                    res = requests.post(upload_url, files=files)
+                    if res.status_code == 200:
+                        docs = res.json().get("documents", [])
+                        st.session_state.uploaded_files = set(docs)
+                        st.sidebar.success(f"✅ {file.name} uploaded and indexed")
+                    else:
+                        st.sidebar.error(f"❌ Upload failed for {file.name}: {res.text}")
+                except Exception as e:
+                    st.sidebar.error(f"❌ Upload error: {e}")
+        sync_with_backend()
+
+    # Always show current docs from backend
+    sync_with_backend()
+    doc_list = list(st.session_state.uploaded_files)
+
+    if doc_list:
+        st.sidebar.markdown("### 📂 Current Documents")
+        for d in doc_list:
+            col1, col2 = st.sidebar.columns([3, 1])
+            col1.write(d)
+            if col2.button("🗑", key=f"del-{d}"):
+                res = requests.delete(upload_url + f"/delete/{d}")
+                if res.status_code == 200:
+                    docs = res.json().get("documents", [])
+                    st.session_state.uploaded_files = set(docs)
+                    st.sidebar.success(f"🗑 {d} deleted (index + file)")
+                else:
+                    st.sidebar.error("Failed to delete file")
+                sync_with_backend()
+
+        if st.sidebar.button("🗑 Delete all documents"):
+            res = requests.delete(upload_url + "/clear")
+            if res.status_code == 200:
+                docs = res.json().get("documents", [])
+                st.session_state.uploaded_files = set(docs)
+                st.sidebar.success("🗑 All documents deleted (index + files)")
+            else:
+                st.sidebar.error("Failed to delete documents")
+            sync_with_backend()
+    else:
+        st.sidebar.info("No documents uploaded yet.")
+
+    # Chat display
     for msg in st.session_state.rag_messages:
         with st.chat_message(msg["role"]):
             st.markdown(msg["content"])
@@ -101,32 +166,6 @@ else:
 
         with st.chat_message("assistant"):
             message_placeholder = st.empty()
-            full_response = ""
-
-            try:
-                payload = {"message": user_input, "mode": "Knowledge Base (RAG)"}
-                with requests.post(backend_url, json=payload, stream=True) as response:
-                    if response.status_code == 200:
-                        for chunk in response.iter_content(chunk_size=None, decode_unicode=True):
-                            if chunk:
-                                try:
-                                    data = json.loads(chunk)
-                                    text = "".join(
-                                        [c["text"] for c in data.get("content", []) if c["type"] == "text"]
-                                    )
-                                    model = data.get("model", "unknown")
-                                    usage = data.get("usage", {})
-                                    token_info = f"🔹 Model: `{model}`  \n🔹 Tokens: input {usage.get('input_tokens',0)}, output {usage.get('output_tokens',0)}"
-
-                                    full_response = f"{text}\n\n---\n{token_info}"
-                                    message_placeholder.markdown(full_response)
-                                except json.JSONDecodeError:
-                                    pass
-                    else:
-                        full_response = f"Error: {response.status_code} - {response.text}"
-                        message_placeholder.error(full_response)
-            except Exception as e:
-                full_response = f"Request failed: {e}"
-                message_placeholder.error(full_response)
-
-            st.session_state.rag_messages.append({"role": "assistant", "content": full_response})
+            response_text = send_message(user_input, "Knowledge Base (RAG)")
+            message_placeholder.markdown(response_text)
+        st.session_state.rag_messages.append({"role": "assistant", "content": response_text})

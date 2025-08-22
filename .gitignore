@@ -19,7 +19,11 @@ Thumbs.db
 rag_index.faiss
 rag_docs.pkl
 
-
 # Ignore uploaded files
 backend/uploads/
 backend/data/uploads/
+
+# Docker
+*.log
+*.pid
+*.sock

@@ -1,0 +1,8 @@
+from fastapi import APIRouter
+from app.routes import upload, chat, health
+
+api_router = APIRouter()
+
+api_router.include_router(upload.router, prefix="/upload", tags=["upload"])
+api_router.include_router(chat.router, prefix="/chat", tags=["chat"])
+api_router.include_router(health.router, prefix="/health", tags=["health"])
