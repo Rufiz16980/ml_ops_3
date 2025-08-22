@@ -1,10 +1,11 @@
-import os
 import json
+import os
+from typing import Dict, List, Tuple
+
 import faiss
 import numpy as np
 from PyPDF2 import PdfReader
 from sentence_transformers import SentenceTransformer
-from typing import List, Tuple, Dict
 
 # Paths
 UPLOAD_DIR = os.path.join("data", "uploads")

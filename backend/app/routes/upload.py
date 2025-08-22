@@ -1,8 +1,9 @@
-import os
 import logging
-from fastapi import APIRouter, UploadFile, File
+import os
+
+from app.services.rag import clear_documents, delete_document, index_pdf, list_documents
+from fastapi import APIRouter, File, UploadFile
 from fastapi.responses import JSONResponse
-from app.services.rag import index_pdf, list_documents, clear_documents, delete_document
 
 router = APIRouter()
 

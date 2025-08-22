@@ -1,6 +1,6 @@
+from app.services.bedrock import stream_bedrock_response
 from fastapi import APIRouter, Request
 from fastapi.responses import StreamingResponse
-from app.services.bedrock import stream_bedrock_response
 
 router = APIRouter()
 

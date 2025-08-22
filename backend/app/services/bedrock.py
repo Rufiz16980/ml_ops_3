@@ -1,8 +1,9 @@
-import boto3
-import os
 import json
-from dotenv import load_dotenv
+import os
+
+import boto3
 from app.services.rag import retrieve_context
+from dotenv import load_dotenv
 
 # Load .env so boto3 can pick up AWS credentials
 load_dotenv()
