@@ -1,0 +1,48 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+jobs:
+  build-and-lint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: |
+          pip install black isort ruff
+
+      - name: Run format checks
+        run: |
+          black --check .
+          isort --check-only .
+          ruff check .
+
+      - name: Build backend Docker image
+        run: docker build -t backend ./backend
+
+      - name: Build frontend Docker image
+        run: docker build -t frontend ./frontend
+
+  deploy:
+    needs: build-and-lint
+    runs-on: self-hosted
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Stop old containers
+        run: docker compose -f docker-compose.yml down || true
+
+      - name: Build and start containers
+        run: docker compose -f docker-compose.yml up -d --build
