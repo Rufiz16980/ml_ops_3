@@ -2,13 +2,17 @@ import streamlit as st
 import requests
 import json
 import io
+import os
 
 st.set_page_config(page_title="RAG Chatbot", page_icon="🤖")
 st.title("RAG Chatbot")
 
-# Backend endpoints
-backend_url = "http://localhost:8000/chat/stream"
-upload_url = "http://localhost:8000/upload"
+# -----------------------
+# Backend endpoints (read from env, default to backend_service in Docker)
+# -----------------------
+BACKEND_URL = os.getenv("BACKEND_URL", "http://backend_service:8000")
+backend_url = f"{BACKEND_URL}/chat/stream"
+upload_url = f"{BACKEND_URL}/upload"
 
 # -----------------------
 # Initialize session state
@@ -19,6 +23,7 @@ if "rag_messages" not in st.session_state:
     st.session_state.rag_messages = []
 if "uploaded_files" not in st.session_state:
     st.session_state.uploaded_files = set()
+
 
 def sync_with_backend():
     """Force refresh of file list from backend."""
@@ -31,9 +36,7 @@ def sync_with_backend():
     except Exception:
         st.session_state.uploaded_files = set()
 
-# -----------------------
-# Helper to send message
-# -----------------------
+
 def send_message(user_input: str, mode: str):
     """Send a message to the backend and return the parsed response text + meta."""
     full_text = ""
@@ -62,9 +65,8 @@ def send_message(user_input: str, mode: str):
 
     return full_text + meta_info
 
-# -----------------------
+
 # Sidebar: choose chat type
-# -----------------------
 chat_type = st.sidebar.radio("Choose Chat", ["General Chat", "Knowledge Base (RAG)"])
 
 # -----------------------
@@ -96,7 +98,7 @@ if chat_type == "General Chat":
 else:
     st.header("📚 Knowledge Base Chat")
 
-    # File upload (reset key whenever uploaded_files changes)
+    # File upload
     uploaded_files = st.sidebar.file_uploader(
         "Upload PDFs",
         type="pdf",
@@ -121,7 +123,7 @@ else:
                     st.sidebar.error(f"❌ Upload error: {e}")
         sync_with_backend()
 
-    # Always show current docs from backend
+    # Always show current docs
     sync_with_backend()
     doc_list = list(st.session_state.uploaded_files)
 

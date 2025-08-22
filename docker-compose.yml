@@ -24,7 +24,7 @@ services:
     volumes:
       - ./frontend:/app
     environment:
-      - BACKEND_URL=http://backend:8000
+      - BACKEND_URL=http://backend_service:8000   # ✅ used inside app.py
     depends_on:
       - backend
     restart: always
