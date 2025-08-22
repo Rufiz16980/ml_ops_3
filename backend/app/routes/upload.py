@@ -6,7 +6,6 @@ from fastapi.responses import JSONResponse
 
 from app.services.rag import clear_documents, delete_document, index_pdf, list_documents
 
-
 router = APIRouter()
 
 # Configure logging
