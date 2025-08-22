@@ -1,4 +1,4 @@
-name: CI/CD Pipeline
+name: CI
 
 on:
   push:
@@ -7,7 +7,7 @@ on:
     branches: [ "main" ]
 
 jobs:
-  lint-and-build:
+  build:
     runs-on: ubuntu-latest
 
     steps:
@@ -26,26 +26,6 @@ jobs:
 
       - name: Run format checks
         run: |
-          black --check .
-          isort --check-only .
-          ruff check .
-
-      - name: Build backend Docker image
-        run: docker build -t backend ./backend
-
-      - name: Build frontend Docker image
-        run: docker build -t frontend ./frontend
-
-  deploy:
-    needs: lint-and-build
-    runs-on: self-hosted
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-
-      - name: Stop old containers
-        run: docker compose -f docker-compose.yml down || true
-
-      - name: Build and start containers
-        run: docker compose -f docker-compose.yml up -d --build
+          black --check --config pyproject.toml .
+          isort --check-only --settings-path pyproject.toml .
+          ruff check --config pyproject.toml .
