@@ -45,6 +45,11 @@ jobs:
         working-directory: ${{ github.workspace }}
 
     steps:
+      - name: Cleanup runtime uploads folder
+        run: |
+          echo "Cleaning up uploads folder before checkout..."
+          sudo rm -rf /home/ubuntu/actions-runner/_work/ml_ops_3/ml_ops_3/backend/data/uploads || true
+
       - name: Checkout code
         uses: actions/checkout@v3
 
