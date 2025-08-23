@@ -1,11 +1,10 @@
 import os
 
+from app.routes import chat, health, upload
+from app.services import rag
 from dotenv import load_dotenv
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-
-from app.routes import chat, health, upload
-from app.services import rag
 
 # Load environment variables
 load_dotenv()
