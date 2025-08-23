@@ -40,6 +40,10 @@ jobs:
     needs: lint-and-build
     runs-on: self-hosted
 
+    defaults:
+      run:
+        working-directory: ${{ github.workspace }}
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -51,10 +55,10 @@ jobs:
         run: docker compose -f docker-compose.yml up -d --build
 
       - name: Show container status
-        run: docker compose ps
+        run: docker compose -f docker-compose.yml ps
 
       - name: Backend logs
-        run: docker compose logs backend --tail=100
+        run: docker compose -f docker-compose.yml logs backend --tail=100
 
       - name: Frontend logs
-        run: docker compose logs frontend --tail=100
+        run: docker compose -f docker-compose.yml logs frontend --tail=100
