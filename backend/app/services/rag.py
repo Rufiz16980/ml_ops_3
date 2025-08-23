@@ -155,12 +155,12 @@ def retrieve_context(query: str, k: int = 3) -> str | None:
 
     try:
         q_vec = embed_texts([query])
-        D, I = index.search(q_vec, k)
+        D, indices = index.search(q_vec, k)  # ✅ renamed "I" → "indices"
     except Exception:
         return None
 
     retrieved = []
-    for idx in I[0]:
+    for idx in indices[0]:
         if idx < len(all_chunks):
             retrieved.append(f"From {mapping[idx]}:\n{all_chunks[idx]}")
 

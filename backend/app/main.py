@@ -4,15 +4,14 @@ from dotenv import load_dotenv
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from app.routes import chat, health, upload
+from app.services import rag
+
 # Load environment variables
 load_dotenv()
 
 MODEL_ID = os.getenv("BEDROCK_MODEL_ID", "anthropic.claude-3-haiku-20240307-v1:0")
 AWS_REGION = os.getenv("AWS_REGION", "us-east-1")
-
-# Import routers AFTER env is loaded
-from app.routes import chat, health, upload
-from app.services import rag
 
 app = FastAPI(title="RAG Chatbot Backend")
 
