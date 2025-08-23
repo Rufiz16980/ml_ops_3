@@ -45,11 +45,12 @@ jobs:
         working-directory: ${{ github.workspace }}
 
     steps:
-      - name: Fix permissions & cleanup old workspace
+      - name: Fix permissions & clean workspace
         run: |
-          echo "Fixing ownership & cleaning old files..."
-          sudo chown -R ubuntu:ubuntu /home/ubuntu/actions-runner/_work/ml_ops_3 || true
-          sudo rm -rf /home/ubuntu/actions-runner/_work/ml_ops_3/ml_ops_3 || true
+          echo "Cleaning old repo to avoid permission issues..."
+          sudo rm -rf ${{ github.workspace }} || true
+          mkdir -p ${{ github.workspace }}
+          sudo chown -R ubuntu:ubuntu ${{ github.workspace }}
 
       - name: Checkout code
         uses: actions/checkout@v3
