@@ -48,11 +48,13 @@ jobs:
         run: docker compose -f docker-compose.yml down || true
 
       - name: Build and start containers
-        run: |
-          docker compose -f docker-compose.yml up -d --build
-          echo "📦 Containers running:"
-          docker compose ps
-          echo "📜 Showing last 50 logs from backend:"
-          docker compose logs backend --tail=50 || true
-          echo "📜 Showing last 50 logs from frontend:"
-          docker compose logs frontend --tail=50 || true
+        run: docker compose -f docker-compose.yml up -d --build
+
+      - name: Show container status
+        run: docker compose ps
+
+      - name: Backend logs
+        run: docker compose logs backend --tail=100
+
+      - name: Frontend logs
+        run: docker compose logs frontend --tail=100
